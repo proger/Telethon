@@ -198,7 +198,10 @@ class Message(ChatGetter, SenderGetter, TLObject):
             replies: Optional[types.TypeMessageReplies] = None,
 
             # For MessageAction (mandatory)
-            action: Optional[types.TypeMessageAction] = None
+            action: Optional[types.TypeMessageAction] = None,
+
+            noforwards: Optional[bool] = None,
+            reactions = None
     ):
         # Common properties to messages, then to service (in the order they're defined in the `.tl`)
         self.out = bool(out)
@@ -244,6 +247,9 @@ class Message(ChatGetter, SenderGetter, TLObject):
         self._via_input_bot = None
         self._action_entities = None
         self._linked_chat = None
+
+        self.noforwards = noforwards
+        self.reactions = reactions
 
         sender_id = None
         if from_id is not None:
