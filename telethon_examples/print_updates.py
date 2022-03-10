@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # A simple script to print all updates received.
 # Import modules to access environment, sleep, write to stderr
+import asyncio
 import os
 import sys
 import time
@@ -8,6 +9,9 @@ import time
 # Import the client
 from telethon import TelegramClient
 
+import logging
+logging.basicConfig(format='[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s',
+                    level=logging.DEBUG)
 
 # This is a helper method to access environment variables or
 # prompt the user to type them in the terminal if missing.
@@ -27,19 +31,24 @@ def get_env(name, message, cast=str):
 session = os.environ.get('TG_SESSION', 'printer')
 api_id = get_env('TG_API_ID', 'Enter your API ID: ', int)
 api_hash = get_env('TG_API_HASH', 'Enter your API hash: ')
-proxy = None  # https://github.com/Anorov/PySocks
 
 
-# This is our update handler. It is called when a new update arrives.
-async def handler(update):
-    print(update)
+from telethon.events.raw import Raw
 
+async def main():
+    client = TelegramClient(session, api_id, api_hash)
 
-# Use the client in a `with` block. It calls `start/disconnect` automatically.
-with TelegramClient(session, api_id, api_hash, proxy=proxy) as client:
-    # Register the update handler so that it gets called
+    async def handler(update: Raw):
+        print(update)
+
     client.add_event_handler(handler)
 
-    # Run the client until Ctrl+C is pressed, or the client disconnects
-    print('(Press Ctrl+C to stop this)')
-    client.run_until_disconnected()
+    await client.start()
+    await client.send_message('me', 'Hello to myself!')
+
+    async for message in client.iter_messages('torontotv', reverse=False):
+        print(message.reactions)
+
+
+if __name__ == '__main__':
+    asyncio.run(main())
